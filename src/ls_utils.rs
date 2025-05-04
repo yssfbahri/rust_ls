@@ -29,14 +29,15 @@ fn format_permissions(mode: u32) -> String {
 }
 
 
-pub fn ls_(path:&Path,config:Options) -> io::Result<()> {
-
+pub fn ls_(path: &Path, config: Options) -> io::Result<()> {
     if path.is_dir() {
-        for entry in fs::read_dir(path)? {
-            let entry = entry?;
+        let entries: Vec<_> = fs::read_dir(path)?
+            .filter_map(Result::ok)
+            .collect();
+
+        for entry in entries {
             let path = entry.path();
-            
-            if let Err(e) = get_file_metadata(path.as_path(),&config){
+            if let Err(e) = get_file_metadata(path.as_path(), &config) {
                 eprintln!("Error: {}", e);
             }
         }
@@ -46,7 +47,6 @@ pub fn ls_(path:&Path,config:Options) -> io::Result<()> {
 
     Ok(())
 }
-
 
 pub fn get_file_metadata(file_path: &Path,options: &Options) -> io::Result<()> {
 
