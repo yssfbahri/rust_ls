@@ -61,10 +61,17 @@ pub fn get_file_metadata(file_path: &Path,options: &Options) -> io::Result<()> {
     }
     if options.long_format {
         let metadata = fs::metadata(file_path)?;
-
+        
         let name = file_path.file_name().unwrap().to_string_lossy();
         let size = metadata.len();
-        //let is_dir = metadata.is_dir();
+
+        let mut is_dir = String::from("");
+        if metadata.is_dir() {
+            is_dir = "d".to_string();
+        } else {
+            is_dir = "-".to_string();
+        }
+        
         let modified = metadata.modified()?;
         let mode = metadata.mode(); 
         let hard_links = metadata.nlink();
@@ -85,7 +92,7 @@ pub fn get_file_metadata(file_path: &Path,options: &Options) -> io::Result<()> {
         let datetime: DateTime<Local> = modified.into();
         let formatted_modified = datetime.format("%b %e %H:%M").to_string();
     
-        println!("{permissions} {hard_links} {size} {user} {group} {formatted_modified} {name}");
+        println!("{is_dir}{permissions} {hard_links} {size} {user} {group} {formatted_modified} {name}");
     }
     else {
         let file_name = file_path
@@ -94,7 +101,7 @@ pub fn get_file_metadata(file_path: &Path,options: &Options) -> io::Result<()> {
         .to_string_lossy()
         .to_string();
 
-        println!("{file_name}")
+        print!("{file_name} ")
     }
 
     Ok(())
