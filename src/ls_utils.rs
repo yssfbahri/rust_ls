@@ -11,6 +11,7 @@ pub struct Options {
     pub all: bool, // -a
     pub long_format: bool, // -l
     pub author: bool,
+    pub reverse: bool,
 }
 
 
@@ -29,12 +30,28 @@ fn format_permissions(mode: u32) -> String {
 }
 
 
-pub fn ls_(path: &Path, config: Options) -> io::Result<()> {
+
+
+
+pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
     if path.is_dir() {
-        let entries: Vec<_> = fs::read_dir(path)?
+        let mut entries: Vec<_> = fs::read_dir(path)?
             .filter_map(Result::ok)
             .collect();
-
+        
+        match sort_mode {
+            "name" => entries.sort_by_key(|e| e.file_name()),
+            "size" => entries.sort_by_key(|e| e.metadata().map(|m| m.len()).unwrap_or(0)),,
+            "time" => {
+                entries.sort_by_key(|e| e.metadata().and_then(|m| m.modified()).ok());
+                entries.reverse()
+            },
+            &_ => todo!(),
+        }
+        
+        if config.reverse {
+            entries.reverse()
+        }
         for entry in entries {
             let path = entry.path();
             if let Err(e) = get_file_metadata(path.as_path(), &config) {
