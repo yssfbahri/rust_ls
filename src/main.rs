@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::path::PathBuf;
 use std::process;
 
 mod ls_utils;
@@ -19,13 +20,17 @@ struct Args {
     /// lists author in long format
     #[arg(long,default_value_t=false)]
     author: bool,
+
+    /// Path to list
+    #[arg(default_value = ".", value_name = "PATH")]
+    path: PathBuf,
 }
 
 
-fn test_function(config:Options){
-    let path = Path::new("/home/yssfbhr/Desktop/test_folder");
+fn test_function(path:&Path,config:Options){
+    //let path = Path::new("/home/yssfbhr/Desktop/test_folder");
 
-    if let Err(e) = ls_utils::ls_(path,config) {
+    if let Err(e) = ls_utils::ls_(&path,config) {
         eprintln!("Error: {}", e);
         process::exit(1);
     }
@@ -39,8 +44,14 @@ fn main() {
         long_format: false,
         author: false,
     };
+    enum sort_mode {
+        name,
+        size,
+        time,
+    }
 
     let args = Args::parse();
+
     if args.all{
         conf.all = true;
         println!("all {}",args.all)
@@ -53,5 +64,5 @@ fn main() {
         conf.author = true;
         println!("author {}",args.author);
     }    
-    test_function(conf);
+    test_function(&args.path,conf);
 }
