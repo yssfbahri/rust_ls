@@ -16,6 +16,9 @@ struct Args {
     #[arg(short,default_value_t=false)]
     l: bool,
 
+    /// lists author in long format
+    #[arg(long,default_value_t=false)]
+    author: bool,
 }
 
 
@@ -34,6 +37,7 @@ fn main() {
     let mut conf : Options = Options {
         all: false,
         long_format: false,
+        author: false,
     };
 
     let args = Args::parse();
@@ -44,10 +48,10 @@ fn main() {
     if args.l {
         conf.long_format = true;
         println!("long {}",args.l)
-
     }
-
-    println!("{}  {}",conf.all,conf.long_format);
-    
+    if args.author {
+        conf.author = true;
+        println!("author {}",args.author);
+    }    
     test_function(conf);
 }

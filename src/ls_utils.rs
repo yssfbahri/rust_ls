@@ -8,8 +8,9 @@ use chrono::{DateTime, Local};
 
 
 pub struct Options {
-    pub show_hidden: bool, // -a
+    pub all: bool, // -a
     pub long_format: bool, // -l
+    pub author: bool,
 }
 
 
@@ -49,60 +50,61 @@ pub fn ls_(path:&Path,config:Options) -> io::Result<()> {
 
 pub fn get_file_metadata(file_path: &Path,options: &Options) -> io::Result<()> {
 
+    let metadata = fs::metadata(file_path)?;
+        
+    let name = file_path.file_name().unwrap().to_string_lossy();
+    let size = metadata.len();
 
+    let mut is_dir = String::from("");
+    if metadata.is_dir() {
+        is_dir = "d".to_string();
+    } else {
+        is_dir = "-".to_string();
+    }
+
+    let modified = metadata.modified()?;
+    let mode = metadata.mode(); 
+    let hard_links = metadata.nlink();
+
+    let uid = metadata.uid();
+    let gid = metadata.gid();
+
+    let user = get_user_by_uid(uid)
+        .map(|u| u.name().to_string_lossy().to_string())
+        .unwrap_or(uid.to_string());
+
+    let group = get_group_by_gid(gid)
+        .map(|g| g.name().to_string_lossy().to_string())
+        .unwrap_or(gid.to_string());
+
+    let permissions = format_permissions(mode);
+
+    let datetime: DateTime<Local> = modified.into();
+    let formatted_modified = datetime.format("%b %e %H:%M").to_string();
     let file_name = file_path
     .file_name()
     .unwrap_or_else(|| std::ffi::OsStr::new("Unknown"))
     .to_string_lossy()
     .to_string();
 
-    if !options.show_hidden && file_name.starts_with('.') {
+    if !options.all && file_name.starts_with('.') {
         return Ok(()); 
     }
     if options.long_format {
-        let metadata = fs::metadata(file_path)?;
-        
-        let name = file_path.file_name().unwrap().to_string_lossy();
-        let size = metadata.len();
-
-        let mut is_dir = String::from("");
-        if metadata.is_dir() {
-            is_dir = "d".to_string();
+        if options.author {
+            println!("{is_dir}{permissions} {hard_links} {size} {user} {group} {user} {formatted_modified} {name}");
         } else {
-            is_dir = "-".to_string();
+            println!("{is_dir}{permissions} {hard_links} {size} {user} {group} {formatted_modified} {name}");
         }
-        
-        let modified = metadata.modified()?;
-        let mode = metadata.mode(); 
-        let hard_links = metadata.nlink();
-
-        let uid = metadata.uid();
-        let gid = metadata.gid();
-    
-        let user = get_user_by_uid(uid)
-            .map(|u| u.name().to_string_lossy().to_string())
-            .unwrap_or(uid.to_string());
-    
-        let group = get_group_by_gid(gid)
-            .map(|g| g.name().to_string_lossy().to_string())
-            .unwrap_or(gid.to_string());
-    
-        let permissions = format_permissions(mode);
-    
-        let datetime: DateTime<Local> = modified.into();
-        let formatted_modified = datetime.format("%b %e %H:%M").to_string();
-    
-        println!("{is_dir}{permissions} {hard_links} {size} {user} {group} {formatted_modified} {name}");
-    }
-    else {
+    } else {
         let file_name = file_path
-        .file_name()
-        .unwrap_or_else(|| std::ffi::OsStr::new("Unknown"))
-        .to_string_lossy()
-        .to_string();
-
-        print!("{file_name} ")
+            .file_name()
+            .unwrap_or_else(|| std::ffi::OsStr::new("Unknown"))
+            .to_string_lossy()
+            .to_string();
+    
+        print!("{file_name} ");
     }
-
+    
     Ok(())
 }
