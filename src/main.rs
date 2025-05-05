@@ -59,14 +59,6 @@ fn main() {
         author: false,
         reverse: false,
     };
-    enum SortMode {
-        name,
-        size,
-        time,
-    }
-
-
-
 
     let args = Args::parse();
     

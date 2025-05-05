@@ -14,8 +14,6 @@ pub struct Options {
     pub reverse: bool,
 }
 
-use std::path::PathBuf;
-
 struct FileData {
     name: String,
     size: u64,
@@ -24,8 +22,6 @@ struct FileData {
     group: String,
     hard_links: u64,
     modified: String,
-    is_dir: String,
-    path: PathBuf,
 }
 
 
@@ -36,12 +32,6 @@ fn build_file_data(path: &Path,) -> std::io::Result<FileData> {
 
     let uid = metadata.uid();
     let gid = metadata.gid();
-    let mut is_dir = String::from("");
-    if metadata.is_dir() {
-        is_dir = "d".to_string();
-    } else {
-        is_dir = "-".to_string();
-    }
     let user = users::get_user_by_uid(uid)
         .and_then(|u| u.name().to_str().map(|s| s.to_string()))
         .unwrap_or_else(|| uid.to_string());
@@ -49,22 +39,24 @@ fn build_file_data(path: &Path,) -> std::io::Result<FileData> {
     let group = users::get_group_by_gid(gid)
         .and_then(|g| g.name().to_str().map(|s| s.to_string()))
         .unwrap_or_else(|| gid.to_string());
+    
+    let permissions = format_permissions(metadata.mode(), metadata.is_dir());
+
 
     Ok(FileData {
         name: path.file_name().unwrap_or_default().to_string_lossy().to_string(),
         size: metadata.len(),
-        permissions: format_permissions(metadata.mode()),
+        permissions,
         user,
         group,
         hard_links: metadata.nlink(),
         modified: datetime.format("%b %e %H:%M").to_string(),
-        is_dir,
-        path: path.to_path_buf(),
     })
 }
 
-fn format_permissions(mode: u32) -> String {
+fn format_permissions(mode: u32, is_dir: bool) -> String {
     let mut perms = String::new();
+    perms.push(if is_dir { 'd' } else { '-' });
     perms.push(if mode & 0o400 != 0 { 'r' } else { '-' });
     perms.push(if mode & 0o200 != 0 { 'w' } else { '-' });
     perms.push(if mode & 0o100 != 0 { 'x' } else { '-' });
@@ -119,16 +111,15 @@ pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
     Ok(())
 }
 
-pub fn get_file_metadata(file_data: &FileData, options: &Options) -> io::Result<()> {
+fn get_file_metadata(file_data: &FileData, options: &Options){
     if !options.all && file_data.name.starts_with('.') {
-            return Ok(()); 
+            return;
         }
     
         if options.long_format {
             if options.author {
                 println!(
-                    "{}{} {} {} {} {} {} {}",
-                    file_data.is_dir,
+                    "{:<3} {:<3} {:<5} {:>3} {} {} {}",
                     file_data.permissions,
                     file_data.hard_links,
                     file_data.size,
@@ -139,8 +130,8 @@ pub fn get_file_metadata(file_data: &FileData, options: &Options) -> io::Result<
                 );
             } else {
                 println!(
-                    "{}{} {} {} {} {} {}",
-                    file_data.is_dir,
+                    "{:<3} {:<8} {:<8} {:>8} {} {}",
+
                     file_data.permissions,
                     file_data.hard_links,
                     file_data.size,
@@ -152,6 +143,4 @@ pub fn get_file_metadata(file_data: &FileData, options: &Options) -> io::Result<
         } else {
             print!("{} ", file_data.name);
         }
-    
-        Ok(())
     }
