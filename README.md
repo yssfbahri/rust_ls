@@ -1,4 +1,4 @@
-# rust-ls
+# rust_ls
 
 A simple `ls`-like utility written in Rust. Supports common listing options such as long format, sorting by size or time, showing hidden files, and displaying file authors. 
 This is not meant for actual use, and has not been tested throughly (at all)
