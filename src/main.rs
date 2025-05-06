@@ -41,8 +41,7 @@ struct Args {
 }
 
 
-fn test_function(path:&Path,config:Options,sort_mode:&str){
-    //let path = Path::new("/home/yssfbhr/Desktop/test_folder");
+fn call_ls_utils(path:&Path,config:Options,sort_mode:&str){
 
     if let Err(e) = ls_utils::ls_(&path,config,sort_mode) {
         eprintln!("Error: {}", e);
@@ -77,15 +76,12 @@ fn main() {
     // printing options
     if args.all{
         conf.all = true;
-        println!("all {}",args.all)
     }
     if args.l {
         conf.long_format = true;
-        println!("long {}",args.l)
     }
     if args.author {
         conf.author = true;
-        println!("author {}",args.author);
     }    
-    test_function(&args.path,conf,sort_mode);
+    call_ls_utils(&args.path,conf,sort_mode);
 }

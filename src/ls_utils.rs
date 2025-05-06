@@ -32,11 +32,11 @@ fn build_file_data(path: &Path,) -> std::io::Result<FileData> {
 
     let uid = metadata.uid();
     let gid = metadata.gid();
-    let user = users::get_user_by_uid(uid)
+    let user = get_user_by_uid(uid)
         .and_then(|u| u.name().to_str().map(|s| s.to_string()))
         .unwrap_or_else(|| uid.to_string());
 
-    let group = users::get_group_by_gid(gid)
+    let group = get_group_by_gid(gid)
         .and_then(|g| g.name().to_str().map(|s| s.to_string()))
         .unwrap_or_else(|| gid.to_string());
     
@@ -102,7 +102,7 @@ pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
         }
         
         for file in files {
-            get_file_metadata(&file,&config);
+            print_formatter(&file,&config);
         }
     } else {
         println!("Path is not a directory");
@@ -111,7 +111,7 @@ pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
     Ok(())
 }
 
-fn get_file_metadata(file_data: &FileData, options: &Options){
+fn print_formatter(file_data: &FileData, options: &Options){
     if !options.all && file_data.name.starts_with('.') {
             return;
         }
@@ -119,25 +119,27 @@ fn get_file_metadata(file_data: &FileData, options: &Options){
         if options.long_format {
             if options.author {
                 println!(
-                    "{:<3} {:<3} {:<5} {:>3} {} {} {}",
+                    "{:<3} {:<8} {:<8} {:>8} {} {} {} {}",
                     file_data.permissions,
                     file_data.hard_links,
                     file_data.size,
                     file_data.user,
                     file_data.group,
                     file_data.user, 
-                    file_data.modified
+                    file_data.modified,
+                    file_data.name
                 );
             } else {
                 println!(
-                    "{:<3} {:<8} {:<8} {:>8} {} {}",
+                    "{:<3} {:<8} {:<8} {:>8} {} {} {}",
 
                     file_data.permissions,
                     file_data.hard_links,
                     file_data.size,
                     file_data.user,
                     file_data.group,
-                    file_data.modified
+                    file_data.modified,
+                    file_data.name
                 );
             }
         } else {
