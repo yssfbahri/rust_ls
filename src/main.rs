@@ -27,7 +27,7 @@ struct Args {
 
     /// sort by size
     #[arg(short,default_value_t=false)]
-    S: bool,
+    s: bool,
 
 
     /// lists author in long format
@@ -69,7 +69,7 @@ fn main() {
     if args.t {
         sort_mode ="time";
     }
-    if args.S {
+    if args.s {
         sort_mode ="size";
     }
 
