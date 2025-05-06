@@ -5,15 +5,10 @@ This is not meant for actual use, and has not been tested throughly (at all)
 
 ## Features
 
-- `-a`, `--all`: Show hidden files (those starting with `.`)
-- `-l`: Long listing format
-- `--author`: Show the author (user) in long format
-- `-t`: Sort by modification time
-- `-s`: Sort by file size
-- `-r`: Reverse the sorting order
-- Accepts a path argument (defaults to current directory)
+- no real benefit other than written in rust (for now)
 
 ## Cons
+
 - no dynamic formating
 - lacks options
 
@@ -36,6 +31,7 @@ rust_ls -- [OPTIONS] [PATH]
 | `-t`          | Sort entries by modification time       |
 | `-s`          | Sort entries by file size               |
 | `-r`          | Reverse the sorting order               |
+| `-h`          | Human readable                          |
 | `PATH`        | Path to list (defaults to `.`)          |
 
 

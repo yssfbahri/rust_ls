@@ -5,10 +5,11 @@ use std::process;
 mod ls_utils;
 use crate::ls_utils::Options;
 
-use clap::Parser;
+use clap::{Parser,Arg};
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = None,disable_help_flag = true)]
+
 struct Args {
     /// do not ignore entries starting with '.'
     #[arg(short,long,default_value_t=false)]
@@ -29,6 +30,11 @@ struct Args {
     #[arg(short,default_value_t=false)]
     s: bool,
 
+    /// human readable
+    #[arg(short,default_value_t=false)]
+    h: bool,
+    
+
 
     /// lists author in long format
     #[arg(long,default_value_t=false)]
@@ -41,9 +47,11 @@ struct Args {
 }
 
 
-fn call_ls_utils(path:&Path,config:Options,sort_mode:&str){
 
+fn call_ls_utils(path:&Path,config:Options,sort_mode:&str){
     if let Err(e) = ls_utils::ls_(&path,config,sort_mode) {
+        println!("test");
+
         eprintln!("Error: {}", e);
         process::exit(1);
     }
@@ -57,6 +65,7 @@ fn main() {
         long_format: false,
         author: false,
         reverse: false,
+        human:false,
     };
 
     let args = Args::parse();
@@ -82,6 +91,9 @@ fn main() {
     }
     if args.author {
         conf.author = true;
-    }    
+    }   
+    if args.h {
+        conf.human = true;
+    } 
     call_ls_utils(&args.path,conf,sort_mode);
 }

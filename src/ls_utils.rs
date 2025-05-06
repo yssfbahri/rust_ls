@@ -10,8 +10,9 @@ use chrono::{DateTime, Local};
 pub struct Options {
     pub all: bool, // -a
     pub long_format: bool, // -l
-    pub author: bool,
-    pub reverse: bool,
+    pub author: bool,// --author
+    pub reverse: bool,// -r
+    pub human: bool, // -h
 }
 
 struct FileData {
@@ -70,8 +71,17 @@ fn format_permissions(mode: u32, is_dir: bool) -> String {
 }
 
 
-
-
+fn format_size(size: u64) -> String {
+    if size >= 1_000_000_000 {
+        format!("{:.1}G", size as f64 / 1_000_000_000.0)
+    } else if size >= 1_000_000 {
+        format!("{:.1}M", size as f64 / 1_000_000.0)
+    } else if size >= 1_000 {
+        format!("{:.1}K", size as f64 / 1_000.0)
+    } else {
+        format!("{}B", size)
+    }
+}
 
 pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
     let mut files = Vec::new();
@@ -102,7 +112,16 @@ pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
         }
         
         for file in files {
-            print_formatter(&file,&config);
+            if !config.all && file.name.starts_with('.') {
+                continue;
+            }
+            if config.long_format {
+                long_format_print(&file,config.author,config.human);
+            }
+            else {
+                print!("{} ", file.name);
+            }
+            
         }
     } else {
         println!("Path is not a directory");
@@ -111,38 +130,61 @@ pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
     Ok(())
 }
 
-fn print_formatter(file_data: &FileData, options: &Options){
-    if !options.all && file_data.name.starts_with('.') {
-            return;
-        }
-    
-        if options.long_format {
-            if options.author {
-                println!(
-                    "{:<3} {:<8} {:<8} {:>8} {} {} {} {}",
-                    file_data.permissions,
-                    file_data.hard_links,
-                    file_data.size,
-                    file_data.user,
-                    file_data.group,
-                    file_data.user, 
-                    file_data.modified,
-                    file_data.name
-                );
-            } else {
-                println!(
-                    "{:<3} {:<8} {:<8} {:>8} {} {} {}",
 
-                    file_data.permissions,
-                    file_data.hard_links,
-                    file_data.size,
-                    file_data.user,
-                    file_data.group,
-                    file_data.modified,
-                    file_data.name
-                );
+fn long_format_print(file_data: &FileData, author: bool,human:bool){
+            if human {
+                let human_size = format_size(file_data.size);
+                if author {
+                    println!(
+                        "{:<3} {:<8} {:<8} {:>8} {} {} {} {}",
+                        file_data.permissions,
+                        file_data.hard_links,
+                        human_size,
+                        file_data.user,
+                        file_data.group,
+                        file_data.user, 
+                        file_data.modified,
+                        file_data.name
+                    );
+                } else {
+                    println!(
+                        "{:<3} {:<8} {:<8} {:>8} {} {} {}",
+    
+                        file_data.permissions,
+                        file_data.hard_links,
+                        human_size,
+                        file_data.user,
+                        file_data.group,
+                        file_data.modified,
+                        file_data.name
+                    );
+                }
+            } else {
+                if author {
+                    println!(
+                        "{:<3} {:<8} {:<8} {:>8} {} {} {} {}",
+                        file_data.permissions,
+                        file_data.hard_links,
+                        file_data.size,
+                        file_data.user,
+                        file_data.group,
+                        file_data.user, 
+                        file_data.modified,
+                        file_data.name
+                    );
+                } else {
+                    println!(
+                        "{:<3} {:<8} {:<8} {:>8} {} {} {}",
+    
+                        file_data.permissions,
+                        file_data.hard_links,
+                        file_data.size,
+                        file_data.user,
+                        file_data.group,
+                        file_data.modified,
+                        file_data.name
+                    );
+                }
             }
-        } else {
-            print!("{} ", file_data.name);
+            
         }
-    }
