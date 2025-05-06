@@ -9,7 +9,7 @@ This is not meant for actual use, and has not been tested throughly (at all)
 - `-l`: Long listing format
 - `--author`: Show the author (user) in long format
 - `-t`: Sort by modification time
-- `-S`: Sort by file size
+- `-s`: Sort by file size
 - `-r`: Reverse the sorting order
 - Accepts a path argument (defaults to current directory)
 
@@ -34,7 +34,7 @@ rust_ls -- [OPTIONS] [PATH]
 | `-l`          | Use a long listing format               |
 | `--author`    | Show author (user) in long listing      |
 | `-t`          | Sort entries by modification time       |
-| `-S`          | Sort entries by file size               |
+| `-s`          | Sort entries by file size               |
 | `-r`          | Reverse the sorting order               |
 | `PATH`        | Path to list (defaults to `.`)          |
 
