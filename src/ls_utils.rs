@@ -23,6 +23,7 @@ struct FileData {
     group: String,
     hard_links: u64,
     modified: String,
+    is_dir: bool,
 }
 
 
@@ -52,6 +53,7 @@ fn build_file_data(path: &Path,) -> std::io::Result<FileData> {
         group,
         hard_links: metadata.nlink(),
         modified: datetime.format("%b %e %H:%M").to_string(),
+        is_dir: metadata.is_dir(),
     })
 }
 
@@ -132,8 +134,9 @@ pub fn ls_(path: &Path, config: Options,sort_mode:&str) -> io::Result<()> {
 
 
 fn long_format_print(file_data: &FileData, author: bool,human:bool){
+            let size = if file_data.is_dir {"-".to_string()} else{file_data.size.to_string()};
             if human {
-                let human_size = format_size(file_data.size);
+                let human_size = if !file_data.is_dir {format_size(file_data.size)} else {size} ;
                 if author {
                     println!(
                         "{:<3} {:<8} {:<8} {:>8} {} {} {} {}",
@@ -165,7 +168,7 @@ fn long_format_print(file_data: &FileData, author: bool,human:bool){
                         "{:<3} {:<8} {:<8} {:>8} {} {} {} {}",
                         file_data.permissions,
                         file_data.hard_links,
-                        file_data.size,
+                        size,
                         file_data.user,
                         file_data.group,
                         file_data.user, 
@@ -178,7 +181,7 @@ fn long_format_print(file_data: &FileData, author: bool,human:bool){
     
                         file_data.permissions,
                         file_data.hard_links,
-                        file_data.size,
+                        size,
                         file_data.user,
                         file_data.group,
                         file_data.modified,
