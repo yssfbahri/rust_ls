@@ -1,99 +1,86 @@
-use std::path::Path;
-use std::path::PathBuf;
+use std::env;
+use std::path::{Path, PathBuf};
 use std::process;
 
 mod ls_utils;
 use crate::ls_utils::Options;
 
-use clap::{Parser,Arg};
-
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None,disable_help_flag = true)]
-
-struct Args {
-    /// do not ignore entries starting with '.'
-    #[arg(short,long,default_value_t=false)]
-    all: bool,
-    /// use a long listing format
-    #[arg(short,default_value_t=false)]
-    l: bool,
-
-    /// sort by time
-    #[arg(short,default_value_t=false)]
-    t: bool,
-
-    /// reverse order 
-    #[arg(short,default_value_t=false)]
-    r: bool,
-
-    /// sort by size
-    #[arg(short,default_value_t=false)]
-    s: bool,
-
-    /// human readable
-    #[arg(short,default_value_t=false)]
-    h: bool,
-    
-
-
-    /// lists author in long format
-    #[arg(long,default_value_t=false)]
-    author: bool,
-
-
-    /// Path to list
-    #[arg(default_value = ".", value_name = "PATH")]
-    path: PathBuf,
-}
-
-
-
-fn call_ls_utils(path:&Path,config:Options,sort_mode:&str){
-    if let Err(e) = ls_utils::ls_(&path,config,sort_mode) {
-        println!("test");
-
-        eprintln!("Error: {}", e);
-        process::exit(1);
-    }
-
-    process::exit(0);
-}
-fn main() {
-
-    let mut conf : Options = Options {
+fn parse_args() -> (Options, String, PathBuf) {
+    let mut conf = Options {
         all: false,
         long_format: false,
         author: false,
         reverse: false,
-        human:false,
+        human: false,
     };
 
-    let args = Args::parse();
-    
-    // sorting options
-    let mut sort_mode = "name";
-    if args.r {
-        conf.reverse = true;
-    }
-    if args.t {
-        sort_mode ="time";
-    }
-    if args.s {
-        sort_mode ="size";
+    let mut sort_mode = "name".to_string();
+    let mut path = PathBuf::from(".");
+
+    let mut args = env::args().skip(1);
+
+    while let Some(arg) = args.next() {
+        if arg.starts_with("--") {
+            match arg.as_str() {
+                "--author" => conf.author = true,
+                "--help" => {
+                    print_help();
+                    process::exit(0);
+                }
+                _ => {
+                    eprintln!("Unknown long option: {}", arg);
+                    process::exit(1);
+                }
+            }
+        } else if arg.starts_with('-') {
+            for ch in arg.chars().skip(1) {
+                match ch {
+                    'a' => conf.all = true,
+                    'l' => conf.long_format = true,
+                    't' => sort_mode = "time".to_string(),
+                    's' => sort_mode = "size".to_string(),
+                    'r' => conf.reverse = true,
+                    'h' => conf.human = true,
+                    _ => {
+                        eprintln!("Unknown short option: -{}", ch);
+                        process::exit(1);
+                    }
+                }
+            }
+        } else {
+            // Assume any non-flag arg is the path
+            path = PathBuf::from(arg);
+        }
     }
 
-    // printing options
-    if args.all{
-        conf.all = true;
+    (conf, sort_mode, path)
+}
+
+fn print_help() {
+    println!(
+        "Usage: ls_clone [OPTIONS] [PATH]
+        
+Options:
+  -a            Do not ignore entries starting with '.'
+  -l            Use a long listing format
+  -t            Sort by time
+  -s            Sort by size
+  -r            Reverse order
+  -h            Human-readable sizes
+  --author      Show author in long format
+  --help        Show this help message
+  PATH          Directory to list (default: .)"
+    );
+}
+
+fn call_ls_utils(path: &Path, config: Options, sort_mode: &str) {
+    if let Err(e) = ls_utils::ls_(path, config, sort_mode) {
+        eprintln!("Error: {}", e);
+        process::exit(1);
     }
-    if args.l {
-        conf.long_format = true;
-    }
-    if args.author {
-        conf.author = true;
-    }   
-    if args.h {
-        conf.human = true;
-    } 
-    call_ls_utils(&args.path,conf,sort_mode);
+}
+
+fn main() {
+    let (conf, sort_mode, path) = parse_args();
+    call_ls_utils(&path, conf, &sort_mode);
 }
