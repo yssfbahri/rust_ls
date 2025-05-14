@@ -3,14 +3,6 @@
 A simple `ls`-like utility written in Rust. Supports common listing options such as long format, sorting by size or time, showing hidden files, and displaying file authors. 
 This is not meant for actual use, and has not been tested throughly (at all)
 
-## Features
-
-- no real benefit other than written in rust (for now)
-
-## Cons
-
-- no dynamic formating
-- lacks options
 
 ## Usage
 
@@ -27,7 +19,7 @@ rust_ls -- [OPTIONS] [PATH]
 | ------------- | --------------------------------------- |
 | `-a`, `--all` | Do not ignore entries starting with `.` |
 | `-l`          | Use a long listing format               |
-| `--author`    | Show author (user) in long listing      |
+| `--author`    | Show author in long listing             |
 | `-t`          | Sort entries by modification time       |
 | `-s`          | Sort entries by file size               |
 | `-r`          | Reverse the sorting order               |
